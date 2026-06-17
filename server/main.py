@@ -4,7 +4,7 @@ from pydantic import BaseModel
 app = FastAPI()
 
 users = {}
-messages = {}
+messages = []
 
 class RegisterRequest(BaseModel):
     username: str
@@ -13,6 +13,7 @@ class RegisterRequest(BaseModel):
 class MessageRequest(BaseModel):
     sender: str
     receiver: str
+    message: str
 
 
 @app.get("/")
