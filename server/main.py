@@ -43,11 +43,11 @@ def register(data: RegisterRequest):
 
 @app.post("/send")
 def send(data: MessageRequest):
-#    if data.username not in users:
-#       return {
-#            "success": False,
-#            "message": "User not registered",
-#        }
+    if data.username not in users:
+       return {
+            "success": False,
+            "message": "User not registered",
+        }
 
     message = {
         "sender": data.sender,
