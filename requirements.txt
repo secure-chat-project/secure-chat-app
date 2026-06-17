@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+sqlalchemy
+pydantic
+cryptography
+passlib[bcrypt]
+python-multipart
+requests
+streamlit
