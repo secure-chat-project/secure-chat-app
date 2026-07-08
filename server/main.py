@@ -1,77 +1,91 @@
-from fastapi import FastAPI
-from pydantic import BaseModel
+from pathlib import Path
 
-app = FastAPI()
+from fastapi import FastAPI, Request, Form
+from fastapi.responses import RedirectResponse
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
 
-users = {}
-messages = []
+BASE_DIR = Path(__file__).resolve().parent
 
-class RegisterRequest(BaseModel):
-    username: str
-    public_key: str
+app = FastAPI(title="SecureChat")
 
-class MessageRequest(BaseModel):
-    sender: str
-    receiver: str
-    message: str
+app.mount("/static", StaticFiles(directory=BASE_DIR / "static"), name="static")
+templates = Jinja2Templates(directory=BASE_DIR / "templates")
+
+
+# Demo-only in-memory data. Replace with your SQL/database layer.
+demo_threads = [
+    {"id": 1, "name": "Thread 01", "status": "Connected", "time": "2m", "active": True},
+    {"id": 2, "name": "Thread 02", "status": "Offline", "time": "15m", "active": False},
+    {"id": 3, "name": "Thread 03", "status": "Offline", "time": "1h", "active": False},
+    {"id": 4, "name": "Thread 04", "status": "Offline", "time": "2h", "active": False},
+    {"id": 5, "name": "Thread 05", "status": "Offline", "time": "1d", "active": False},
+]
+
+demo_messages = [
+    {"sender": "other", "text": "Public key received. Secure session started."},
+    {"sender": "me", "text": "Connection confirmed."},
+    {"sender": "other", "text": "Messages are encrypted before storage."},
+    {"sender": "me", "text": "Sounds good. Sending a test message now."},
+]
 
 
 @app.get("/")
-def home():
-    return {
-        "status": "running",
-        "project": "Secure Chat App"
-    }
+def root():
+    return RedirectResponse(url="/login")
 
-@app.get("/users")
-def get_users():
-    return users
+
+@app.get("/login")
+def login_page(request: Request):
+    return templates.TemplateResponse(
+        request=request,
+        name="login.html",
+        context={"title": "Log in"}
+    )
+
+
+@app.post("/login")
+def login(username: str = Form(...), password: str = Form(...)):
+    # Replace this with real authentication.
+    return RedirectResponse(url="/chat", status_code=303)
+
+
+@app.get("/register")
+def register_page(request: Request):
+    return templates.TemplateResponse(
+        request=request,
+        name="register.html",
+        context={"title": "Create account"}
+    )
+
 
 @app.post("/register")
-def register(data: RegisterRequest):
-    if data.username in users:
-        return {
-            "success": False,
-            "message": "Username already exists",
-        }
+def register(
+    username: str = Form(...),
+    email: str = Form(...),
+    password: str = Form(...),
+    confirm_password: str = Form(...)
+):
+    # Replace this with password hashing + public key registration.
+    return RedirectResponse(url="/login", status_code=303)
 
-    users[data.username] = data.public_key
-    return {
-        "success": True,
-        "message": f"User {data.username} created",
-    }
+
+@app.get("/chat")
+def chat_page(request: Request):
+    return templates.TemplateResponse(
+        request=request,
+        name="chat.html",
+        context={
+            "title": "Chat",
+            "username": "Baron",
+            "threads": demo_threads,
+            "messages": demo_messages,
+            "active_thread": demo_threads[0],
+        },
+    )
+
 
 @app.post("/send")
-def send(data: MessageRequest):
-    if data.username not in users:
-       return {
-            "success": False,
-            "message": "User not registered",
-        }
-
-    message = {
-        "sender": data.sender,
-        "receiver": data.receiver,
-        "message": data.message
-    }
-
-    messages.append(message)
-    print(message)
-
-    return {
-        "success": True,
-        "message": "Message stored",
-    }
-
-@app.get("/messages/{username}")
-def get_message(username: str):
-    inbox = []
-
-    for message in messages:
-        if message["sender"] == username and message["receiver"] == username:
-            inbox.append(message)
-
-    return {
-        "username": username,
-        "messages": messages,
-    }
+def send_message(message: str = Form(...)):
+    # Replace this with encrypted message handling + database insert.
+    return RedirectResponse(url="/chat", status_code=303)
