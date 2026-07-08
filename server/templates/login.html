@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block content %}
+<main class="auth-page">
+    <section class="auth-brand-panel">
+        <div class="brand">
+            <div class="brand-icon">🔒</div>
+            <span>SecureChat</span>
+        </div>
+
+        <div class="brand-copy">
+            <h1>Private conversations.<br>Total peace of mind.</h1>
+            <p>Secure, encrypted messaging for teams and individuals.</p>
+        </div>
+
+        <div class="security-graphic">
+            <div class="shield">🔐</div>
+        </div>
+
+        <div class="security-note">
+            <span class="small-lock">🔒</span>
+            <span>End-to-end encrypted messaging</span>
+            <span class="status-dot"></span>
+        </div>
+    </section>
+
+    <section class="auth-form-panel">
+        <form class="auth-card" method="post" action="/login">
+            <h2>Welcome back</h2>
+            <p class="subtitle">Log in to continue your secure conversations.</p>
+
+            <label for="username">Username or Email</label>
+            <div class="input-group">
+                <span class="input-icon">👤</span>
+                <input id="username" name="username" type="text" placeholder="Enter your username or email" required>
+            </div>
+
+            <label for="password">Password</label>
+            <div class="input-group">
+                <span class="input-icon">🔒</span>
+                <input id="password" name="password" type="password" placeholder="Enter your password" required>
+                <button class="ghost-button" type="button" onclick="togglePassword('password')">Show</button>
+            </div>
+
+            <div class="form-row">
+                <label class="checkbox-label">
+                    <input type="checkbox" name="remember">
+                    <span>Remember me</span>
+                </label>
+                <a href="#" class="text-link">Forgot password?</a>
+            </div>
+
+            <button class="primary-button" type="submit">Log in</button>
+
+            <div class="divider"><span>or</span></div>
+
+            <p class="switch-auth">
+                Don’t have an account?
+                <a href="/register">Create an account</a>
+            </p>
+        </form>
+    </section>
+</main>
+{% endblock %}
