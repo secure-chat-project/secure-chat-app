@@ -74,12 +74,36 @@ def register_page(request: Request):
 
 @app.post("/register")
 def register(
+    request: Request,
     username: str = Form(...),
-    email: str = Form(...),
     password: str = Form(...),
-    confirm_password: str = Form(...)
+    confirm_password: str = Form(...),
+    db: Session = Depends(get_db),
 ):
-    # Replace this with password hashing + public key registration.
+    # Check passwds match
+    if password != confirm_password:
+        return templates.TemplateResponse(
+            request=request,
+            name="register.html",
+            context={"title": "Create account", "error": "Passwords do not match"}
+        )
+
+    # Check for duplicate username
+    existing_user = db.query(models.User).filter(models.User.username == username).first()
+    if existing_user:
+        return templates.TemplateResponse(
+            request=request,
+            name="register.html",
+            context={"title": "Create account", "error": "Username already taken"}
+        )
+
+    # Hash the password and save the user
+    hashed_password = pwd_context.hash(password)
+    new_user = models.User(username=username, password_hash=hashed_password)
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
+
     return RedirectResponse(url="/login", status_code=303)
 
 
