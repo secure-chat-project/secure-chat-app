@@ -50,6 +50,10 @@
             <h2>Create account</h2>
             <p class="subtitle">Join SecureChat and start messaging securely.</p>
 
+            {% if error %}
+            <p style="color: red;">{{ error }}</p>
+            {% endif %}
+
             <div class="input-group">
                 <span class="input-icon">👤</span>
                 <input name="username" type="text" placeholder="Username" required>
