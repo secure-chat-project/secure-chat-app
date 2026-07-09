@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block content %}
+<main class="chat-page">
+    <aside class="chat-sidebar">
+        <div class="brand chat-brand">
+            <div class="brand-icon">🔒</div>
+            <span>SecureChat</span>
+        </div>
+
+        <h1>Messages</h1>
+
+        <div class="thread-list">
+            {% for thread in threads %}
+            <a class="thread-card {% if thread.active %}active{% endif %}" href="/chat?thread={{ thread.id }}">
+                <div class="thread-avatar">T{{ thread.id }}</div>
+                <div class="thread-info">
+                    <strong>{{ thread.name }}</strong>
+                    <span>{{ thread.status }}</span>
+                </div>
+                <small>{{ thread.time }}</small>
+            </a>
+            {% endfor %}
+        </div>
+
+        <div class="sidebar-security">
+            <span>🔒</span>
+            <span>End-to-end encrypted</span>
+            <span class="status-dot"></span>
+        </div>
+    </aside>
+
+    <section class="chat-main">
+        <header class="chat-header">
+            <div>
+                <h2>{{ active_thread.name }}</h2>
+                <p><span class="status-dot"></span>{{ active_thread.status }}</p>
+            </div>
+            <button class="menu-button" aria-label="Thread menu">⋮</button>
+        </header>
+
+        <section class="message-area" id="message-area">
+            {% for msg in messages %}
+            <div class="message-row {% if msg.sender == 'me' %}outgoing{% else %}incoming{% endif %}">
+                <div class="message-bubble">
+                    {{ msg.text }}
+                </div>
+            </div>
+            {% endfor %}
+        </section>
+
+        <form class="message-composer" method="post" action="/send">
+            <input name="message" type="text" placeholder="Enter message..." autocomplete="off" required>
+            <button type="submit" aria-label="Send message">➤</button>
+        </form>
+    </section>
+</main>
+{% endblock %}

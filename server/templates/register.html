@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+
+{% block content %}
+<main class="auth-page">
+    <section class="auth-brand-panel">
+        <div class="brand">
+            <div class="brand-icon">🔒</div>
+            <span>SecureChat</span>
+        </div>
+
+        <div class="brand-copy">
+            <h1>Private conversations.<br>Total control.</h1>
+            <p>SecureChat is an encrypted messaging platform built for privacy and peace of mind.</p>
+        </div>
+
+        <div class="feature-list">
+            <div class="feature-item">
+                <div class="feature-icon">🔐</div>
+                <div>
+                    <h3>End-to-end encrypted</h3>
+                    <p>Only you and your contacts can read your messages.</p>
+                </div>
+            </div>
+
+            <div class="feature-item">
+                <div class="feature-icon">🛡️</div>
+                <div>
+                    <h3>Private by design</h3>
+                    <p>No unnecessary data collection.</p>
+                </div>
+            </div>
+
+            <div class="feature-item">
+                <div class="feature-icon">🔑</div>
+                <div>
+                    <h3>You own your data</h3>
+                    <p>Your keys, your messages, your control.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="security-card">
+            <strong>Your security matters</strong>
+            <p>Public keys can be generated during account setup to protect conversations.</p>
+        </div>
+    </section>
+
+    <section class="auth-form-panel">
+        <form class="auth-card" method="post" action="/register">
+            <h2>Create account</h2>
+            <p class="subtitle">Join SecureChat and start messaging securely.</p>
+
+            {% if error %}
+            <p style="color: red;">{{ error }}</p>
+            {% endif %}
+
+            <div class="input-group">
+                <span class="input-icon">👤</span>
+                <input name="username" type="text" placeholder="Username" required>
+            </div>
+
+            <div class="input-group">
+                <span class="input-icon">🔒</span>
+                <input id="signup-password" name="password" type="password" placeholder="Password" required>
+                <button class="ghost-button" type="button" onclick="togglePassword('signup-password')">Show</button>
+            </div>
+
+            <div class="input-group">
+                <span class="input-icon">🔒</span>
+                <input id="confirm-password" name="confirm_password" type="password" placeholder="Confirm Password" required>
+                <button class="ghost-button" type="button" onclick="togglePassword('confirm-password')">Show</button>
+            </div>
+
+            <label class="checkbox-label terms">
+                <input type="checkbox" required>
+                <span>I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a></span>
+            </label>
+
+            <button class="primary-button" type="submit">Sign up</button>
+
+            <div class="divider"><span>or</span></div>
+
+            <p class="switch-auth">
+                Already have an account?
+                <a href="/login">Log in</a>
+            </p>
+
+            <p class="secure-footnote">🔒 Your credentials are stored securely.</p>
+        </form>
+    </section>
+</main>
+{% endblock %}
