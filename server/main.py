@@ -1,9 +1,22 @@
 from pathlib import Path
 
-from fastapi import FastAPI, Request, Form
-from fastapi.responses import RedirectResponse
+from fastapi import FastAPI, Request, Form, Depends
+from fastapi.responses import RedirectResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from sqlalchemy.orm import Session
+from passlib.context import CryptContext
+from database import SessionLocal, engine
+import models
+
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
 BASE_DIR = Path(__file__).resolve().parent
 
