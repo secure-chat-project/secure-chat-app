@@ -8,8 +8,15 @@ from sqlalchemy.orm import Session
 from passlib.context import CryptContext
 from database import SessionLocal, engine
 import models
+from jose import JWTError, jwt
+from datetime import datetime, timedelta
+from fastapi.responses import RedirectResponse, HTMLResponse
+from fastapi import Cookie
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+SECRET_KEY = "your-secret-key-change-this"
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = 60
 
 def get_db():
     db = SessionLocal()
@@ -58,10 +65,40 @@ def login_page(request: Request):
 
 
 @app.post("/login")
-def login(username: str = Form(...), password: str = Form(...)):
-    # Replace this with real authentication.
-    return RedirectResponse(url="/chat", status_code=303)
+def login(
+    request: Request,
+    username: str = Form(...),
+    password: str = Form(...),
+    db: Session = Depends(get_db)
+):
+    # Check if user exists
+    user = db.query(models.User).filter(models.User.username == username).first()
+    if not user:
+        return templates.TemplateResponse(
+            request=request,
+            name="login.html",
+            context={"title": "Log in", "error": "Invalid username or password"}
+        )
 
+    # Verify password
+    if not pwd_context.verify(password, user.password_hash):
+        return templates.TemplateResponse(
+            request=request,
+            name="login.html",
+            context={"title": "Log in", "error": "Invalid username or password"}
+        )
+
+    # Create JWT token
+    token_data = {
+        "sub": user.username,
+        "exp": datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    }
+    token = jwt.encode(token_data, SECRET_KEY, algorithm=ALGORITHM)
+
+    # Set token in cookie and redirect to chat
+    response = RedirectResponse(url="/chat", status_code=303)
+    response.set_cookie(key="access_token", value=token, httponly=True, secure=True, samesite="lax")
+    return response
 
 @app.get("/register")
 def register_page(request: Request):
