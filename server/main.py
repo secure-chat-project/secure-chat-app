@@ -25,6 +25,16 @@ def get_db():
     finally:
         db.close()
 
+def get_current_user(access_token: str = Cookie(None)):
+    if access_token is None:
+        return None
+    try:
+        payload = jwt.decode(access_token, SECRET_KEY, algorithms=[ALGORITHM])
+        username = payload.get("sub")
+        return username
+    except JWTError:
+        return None
+
 BASE_DIR = Path(__file__).resolve().parent
 
 app = FastAPI(title="SecureChat")
@@ -145,13 +155,16 @@ def register(
 
 
 @app.get("/chat")
-def chat_page(request: Request):
+def chat_page(request: Request, current_user: str = Depends(get_current_user)):
+    if current_user is None:
+        return RedirectResponse(url="/login", status_code=303)
+
     return templates.TemplateResponse(
         request=request,
         name="chat.html",
         context={
             "title": "Chat",
-            "username": "Baron",
+            "username": current_user,
             "threads": demo_threads,
             "messages": demo_messages,
             "active_thread": demo_threads[0],
