@@ -171,6 +171,34 @@ def chat_page(request: Request, current_user: str = Depends(get_current_user)):
         },
     )
 
+@app.post("/keys/upload")
+def upload_key(
+        request: Request,
+        public_key: str = Form(...),
+        current_user: str = Depends(get_current_user),
+        db: Session = Depends(get_db)
+):
+    if current_user is None:
+        return RedirectResponse(url="/login", status_code=303)
+
+    user = db.query(models.User).filter(models.User.username == current_user).first()
+    if not user:
+        return {"success": False, "message": "User not found"}
+
+    user.public_key = public_key
+    db.commit()
+
+    return {"success": True, "message": f"Public key uploaded for {current_user}"}
+
+@app.get("/keys/fetch/{username}")
+def fetch_key(username: str, db: Session = Depends(get_db)):
+    user = db.query(models.User).filter(models.User.username == username).first()
+    if not user:
+        return {"success": False, "message": "User not found"}
+    if not user.public_key:
+        return {"success": False, "message": "No public key found for this user"}
+
+    return {"success": True, "public_key": user.public_key}
 
 @app.post("/send")
 def send_message(message: str = Form(...)):
