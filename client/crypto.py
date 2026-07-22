@@ -1,6 +1,10 @@
 from cryptography.hazmat.primitives.asymmetric import rsa, padding
 from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 import os
+import secrets
+from cryptography.hazmat.primitives.asymmetric import padding
+from cryptography.hazmat.primitives import hashes
 
 KEY_DIR = os.path.dirname(os.path.abspath(__file__))
 PRIVATE_KEY_PATH = os.path.join(KEY_DIR, "private_key.pem")
@@ -44,3 +48,42 @@ def get_public_key_pem():
 
 def keypair_exists():
     return os.path.exists(PRIVATE_KEY_PATH) and os.path.exists(PUBLIC_KEY_PATH)
+
+def encrypt_message(plaintext, aes_key):
+    nonce = os.urandom(12)
+    aesgcm = AESGCM(aes_key)
+    ciphertext = aesgcm.encrypt(nonce, plaintext.encode("utf-8"), None)
+    return ciphertext, nonce
+
+def decrypt_message(ciphertext, aes_key, nonce):
+    aesgcm = AESGCM(aes_key)
+    plaintext = aesgcm.decrypt(nonce, ciphertext, None)
+    return plaintext.decode("utf-8")
+
+def generate_session_key():
+    return secrets.token_bytes(32)
+
+def wrap_key(session_key, recipient_public_key_pem):
+    from cryptography.hazmat.primitives.serialization import load_pem_public_key
+    public_key = load_pem_public_key(recipient_public_key_pem.encode("utf-8"))
+    encrypted_key = public_key.encrypt(
+        session_key,
+        padding.OAEP(
+            mgf=padding.MGF1(algorithm=hashes.SHA256()),
+            algorithm=hashes.SHA256(),
+            label=None
+        )
+    )
+    return encrypted_key
+
+def unwrap_key(encrypted_key):
+    private_key = load_private_key()
+    session_key = private_key.decrypt(
+        encrypted_key,
+        padding.OAEP(
+            mgf=padding.MGF1(algorithm=hashes.SHA256()),
+            algorithm=hashes.SHA256(),
+            label=None
+        )
+    )
+    return session_key

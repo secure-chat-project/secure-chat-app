@@ -12,6 +12,7 @@ from jose import JWTError, jwt
 from datetime import datetime, timedelta
 from fastapi.responses import RedirectResponse, HTMLResponse
 from fastapi import Cookie
+import base64
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 SECRET_KEY = "your-secret-key-change-this"
@@ -204,3 +205,60 @@ def fetch_key(username: str, db: Session = Depends(get_db)):
 def send_message(message: str = Form(...)):
     # Replace this with encrypted message handling + database insert.
     return RedirectResponse(url="/chat", status_code=303)
+
+@app.post("/messages/send")
+def send_message(
+    request: Request,
+    recipient: str = Form(...),
+    ciphertext: str = Form(...),
+    nonce: str = Form(...),
+    encrypted_key_for_recipient: str = Form(...),
+    encrypted_key_for_sender: str = Form(...),
+    current_user: str = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    if current_user is None:
+        return {"success": False, "message": "Not authenticated"}
+
+    new_message = models.Message(
+        sender=current_user,
+        recipient=recipient,
+        ciphertext=ciphertext,
+        nonce=nonce,
+        encrypted_key_for_recipient=encrypted_key_for_recipient,
+        encrypted_key_for_sender=encrypted_key_for_sender
+    )
+    db.add(new_message)
+    db.commit()
+    db.refresh(new_message)
+
+    return {"success": True, "message": "Message sent"}
+
+
+@app.get("/messages/history")
+def get_history(
+    current_user: str = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    if current_user is None:
+        return {"success": False, "message": "Not authenticated"}
+
+    messages = db.query(models.Message).filter(
+        (models.Message.sender == current_user) |
+        (models.Message.recipient == current_user)
+    ).order_by(models.Message.timestamp).all()
+
+    result = []
+    for msg in messages:
+        result.append({
+            "id": msg.id,
+            "sender": msg.sender,
+            "recipient": msg.recipient,
+            "ciphertext": msg.ciphertext,
+            "nonce": msg.nonce,
+            "encrypted_key_for_recipient": msg.encrypted_key_for_recipient,
+            "encrypted_key_for_sender": msg.encrypted_key_for_sender,
+            "timestamp": str(msg.timestamp)
+        })
+
+    return {"success": True, "messages": result}
