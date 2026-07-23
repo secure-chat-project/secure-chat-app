@@ -262,3 +262,8 @@ def get_history(
         })
 
     return {"success": True, "messages": result}
+
+@app.get("/users")
+def get_users(db: Session = Depends(get_db)):
+    users = db.query(models.User).all()
+    return {"success": True, "users": [u.username for u in users]}
